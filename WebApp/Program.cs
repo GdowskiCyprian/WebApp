@@ -1,9 +1,10 @@
+using Authorization.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using WebApp.Components;
 using WebApp.Components.Account;
-using WebApp.Data;
 
 namespace WebApp
 {
@@ -34,14 +35,33 @@ namespace WebApp
                 options.UseSqlServer(connectionString));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddSignInManager()
                 .AddDefaultTokenProviders();
 
-            builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+            //builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+                var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+                string[] roleNames = { "Client", "Business" };
+                IdentityResult roleResult;
+
+                foreach (var roleName in roleNames)
+                {
+                    var roleExist = roleManager.RoleExistsAsync(roleName).Result;
+                    if (!roleExist)
+                    {
+                        roleResult = roleManager.CreateAsync(new IdentityRole(roleName)).Result;
+                    }
+                }
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

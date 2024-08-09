@@ -1,13 +1,40 @@
 ﻿@page "/auth"
 
+@using Authorization.Data
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
 
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Client")]
 
 <PageTitle>Auth</PageTitle>
 
 <h1>You are authenticated</h1>
 
 <AuthorizeView>
-    Hello @context.User.Identity?.Name!
+    Hello @User!
+    You are @Role
 </AuthorizeView>
+
+@code{
+    private string Role;
+    private string User;
+
+    protected override async Task OnInitializedAsync()
+    {
+        User = SignInManager.Context.User.Identity.Name;
+        Role = CheckRole(SignInManager);
+    }
+
+    public string CheckRole(SignInManager<ApplicationUser> signInManager)
+    {
+        if (signInManager.Context.User.IsInRole("Client"))
+        {
+            return "Client";
+        }
+        else
+        {
+            return "Business";
+        }
+    }
+}
