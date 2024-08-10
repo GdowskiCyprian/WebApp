@@ -5,7 +5,7 @@
 @using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
-@using Authorization.Data
+@using WebApp.Authorization
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
@@ -43,8 +43,12 @@
                 <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
             </div>
             <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.Role" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="confirm-password">Role</label>
+                @* <InputText type="text" @bind-Value="Input.Role" class="form-control" aria-required="true" placeholder="Client" /> *@
+                <InputSelect class="form-select" @bind-Value="Input.Role">
+                    <option value="Client">Client</option>
+                    <option value="Business">Business</option>
+                </InputSelect>
+                <label for="role">Role</label>
                 <ValidationMessage For="() => Input.Role" class="text-danger" />
             </div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
@@ -52,9 +56,9 @@
     </div>
     <div class="col-md-6 col-md-offset-2">
         <section>
-            <h3>Use another service to register.</h3>
+           @*  <h3>Use another service to register.</h3>
             <hr />
-            <ExternalLoginPicker />
+            <ExternalLoginPicker /> *@
         </section>
     </div>
 </div>
@@ -131,6 +135,11 @@
             throw new NotSupportedException("The default UI requires a user store with email support.");
         }
         return (IUserEmailStore<ApplicationUser>)UserStore;
+    }
+
+    private void OnUserRoleChanged(ChangeEventArgs e)
+    {
+        Input.Role = e.Value.ToString();
     }
 
     private sealed class InputModel

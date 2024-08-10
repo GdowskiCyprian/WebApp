@@ -1,4 +1,4 @@
-using Authorization.Data;
+using WebApp.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;

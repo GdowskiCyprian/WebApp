@@ -1,5 +1,4 @@
-﻿@page "/auth"
-
+﻿@page "/client/searchbusiness"
 @using WebApp.Authorization
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
@@ -7,22 +6,20 @@
 
 @attribute [Authorize(Roles = Roles.Client)]
 
-<PageTitle>Auth</PageTitle>
-
-<h1>You are authenticated</h1>
+<PageTitle>Search Business</PageTitle>
 
 <AuthorizeView>
     Hello @User!
     You are @Role
 </AuthorizeView>
 
-@code{
+@code {
     private string Role;
     private string User;
 
     protected override async Task OnInitializedAsync()
     {
-        User = SignInManager.Context.User.Identity.Name;
+        User = SignInManager.Context.User.Identity?.Name;
         Role = CheckRole(SignInManager);
     }
 

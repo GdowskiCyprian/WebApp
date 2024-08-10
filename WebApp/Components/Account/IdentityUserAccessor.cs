@@ -1,5 +1,6 @@
-using Authorization.Data;
+using WebApp.Authorization;
 using Microsoft.AspNetCore.Identity;
+using WebApp.Authorization;
 
 namespace WebApp.Components.Account
 {

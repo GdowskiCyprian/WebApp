@@ -1,4 +1,4 @@
-using Authorization.Data;
+using WebApp.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -50,7 +50,7 @@ namespace WebApp
                 var services = scope.ServiceProvider;
                 var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
                 var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-                string[] roleNames = { "Client", "Business" };
+                string[] roleNames = { Roles.Client, Roles.Business };
                 IdentityResult roleResult;
 
                 foreach (var roleName in roleNames)

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
-using Authorization.Data;
+using WebApp.Authorization;
 
 namespace WebApp.Components.Account
 {
