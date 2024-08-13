@@ -2,7 +2,10 @@
 @using WebApp.Authorization
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
+@using WebApp.Infrastructure.Abstractions
+@using WebApp.Infrastructure.Api
 @inject SignInManager<ApplicationUser> SignInManager
+@inject IWebAppInfraApi infraApi
 
 @attribute [Authorize(Roles = Roles.Client)]
 
@@ -11,16 +14,30 @@
 <AuthorizeView>
     Hello @User!
     You are @Role
+
+    @foreach (var business in businessModels)
+    {
+        <tr>
+            <td>@business.Id</td>
+            <td>@business.Name</td>
+            <td>@business.PostalCode</td>
+            <td>@business.City</td>
+        </tr>
+    }
 </AuthorizeView>
 
 @code {
     private string Role;
     private string User;
 
+    private List<BusinessModel> businessModels = new List<BusinessModel>();
+
     protected override async Task OnInitializedAsync()
     {
         User = SignInManager.Context.User.Identity?.Name;
         Role = CheckRole(SignInManager);
+
+        businessModels = await infraApi.GetBusinessModelsAsync("https://localhost:44317");
     }
 
     public string CheckRole(SignInManager<ApplicationUser> signInManager)

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WebApp.Components;
 using WebApp.Components.Account;
+using WebApp.Infrastructure.Extensions;
 
 namespace WebApp
 {
@@ -42,6 +43,8 @@ namespace WebApp
                 .AddDefaultTokenProviders();
 
             //builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+            builder.Services.AddWebAppInfrastructure();
 
             var app = builder.Build();
 

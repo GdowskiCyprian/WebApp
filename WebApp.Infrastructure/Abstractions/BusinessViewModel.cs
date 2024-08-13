@@ -1,8 +1,7 @@
 ﻿namespace WebApp.Infrastructure.Abstractions
 {
-    public class Business
+    public class BusinessViewModel
     {
-        public Guid Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public string BusinessType { get; set; }

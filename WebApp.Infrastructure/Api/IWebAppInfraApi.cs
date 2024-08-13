@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using WebApp.Infrastructure.Abstractions;
 
 namespace WebApp.Infrastructure.Api
 {
-    internal class IWebAppInfraApi
+    public interface IWebAppInfraApi
     {
+        public Task<List<BusinessModel>> GetBusinessModelsAsync(string url);
+        public Task<bool> InsertBusinessModelAsync(BusinessViewModel model, string url);
+        public Task<bool> UpdateBusinessModelAsync(BusinessModel model, string url);
+        public Task<bool> DeleteBusinessModelAsync(int id, string url);
     }
 }
