@@ -43,11 +43,13 @@
         <div class="visit-list-container">
             @foreach (var visit in FilteredVisits)
             {
-                <VisitTile BusinessId="@visit.BusinessId"
+                <VisitTile Id="@visit.Id"
+                           BusinessId="@visit.BusinessId"
                            VisitTime="@visit.VisitTime"
                            Email="@visit.Email"
                            PhoneNumber="@visit.PhoneNumber"
-                           IsConfirmed="@visit.IsConfirmed" />
+                           IsConfirmed="@visit.IsConfirmed"
+                           OnDeleteVisit="DeleteVisit" />
             }
         </div>
 
@@ -133,6 +135,20 @@
         bool success = await infraApi.InsertVisitAsync(visitModel, "https://localhost:44317");
 
         showModal = false;
+    }
+
+    private async Task DeleteVisit(int visitId)
+    {
+        bool success = await infraApi.DeleteVisitAsync(visitId, "https://localhost:44317");
+
+        if (success)
+        {
+            FilteredVisits = FilteredVisits.Where(v => v.Id != visitId).ToList();
+        }
+        else
+        {
+            // Handle error
+        }
     }
 }
 
