@@ -20,7 +20,6 @@ namespace WebApp.Infrastructure.Api
             {
                 HttpClient _httpClient = new HttpClient();
                 var token = await _webAppInfraHttpClient.GetJwtBearerToken(new HttpClients.Models.LoginModel() { Username = "testuser", Password = "testpassword" }, url);
-                //_httpClient.DefaultRequestHeaders.Add("auth", $"Bearer {token}");
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
                 var resp = await _httpClient.GetAsync($"{url}{ApiEndpoints.GetBusinessModels}");
                 var content = await resp.Content.ReadAsStringAsync();
@@ -75,6 +74,84 @@ namespace WebApp.Infrastructure.Api
             catch (HttpRequestException ex)
             {
                 throw new ApplicationException("Error deleting business model", ex);
+            }
+        }
+
+        // Visit Methods
+        public async Task<List<VisitModel>> GetVisitsAsync(string url)
+        {
+            try
+            {
+                HttpClient _httpClient = new HttpClient();
+                var token = await _webAppInfraHttpClient.GetJwtBearerToken(new HttpClients.Models.LoginModel() { Username = "testuser", Password = "testpassword" }, url);
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                var response = await _httpClient.GetFromJsonAsync<List<VisitModel>>($"{url}{ApiEndpoints.GetVisits}");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("Error fetching visits", ex);
+            }
+        }
+
+        public async Task<bool> InsertVisitAsync(VisitViewModel model, string url)
+        {
+            try
+            {
+                HttpClient _httpClient = new HttpClient();
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", await _webAppInfraHttpClient.GetJwtBearerToken(new HttpClients.Models.LoginModel() { Username = "testuser", Password = "testpassword" }, url));
+                var response = await _httpClient.PostAsJsonAsync($"{url}{ApiEndpoints.InsertVisit}", model);
+                return response.IsSuccessStatusCode;
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApplicationException("Error inserting visit", ex);
+            }
+        }
+
+        public async Task<bool> UpdateVisitAsync(VisitModel model, string url)
+        {
+            try
+            {
+                HttpClient _httpClient = new HttpClient();
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", await _webAppInfraHttpClient.GetJwtBearerToken(new HttpClients.Models.LoginModel() { Username = "testuser", Password = "testpassword" }, url));
+                var response = await _httpClient.PutAsJsonAsync($"{url}{ApiEndpoints.UpdateVisit}", model);
+                return response.IsSuccessStatusCode;
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApplicationException("Error updating visit", ex);
+            }
+        }
+
+        public async Task<bool> DeleteVisitAsync(int id, string url)
+        {
+            try
+            {
+                HttpClient _httpClient = new HttpClient();
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", await _webAppInfraHttpClient.GetJwtBearerToken(new HttpClients.Models.LoginModel() { Username = "testuser", Password = "testpassword" }, url));
+                var response = await _httpClient.DeleteAsync($"{url}{ApiEndpoints.DeleteVisit}/{id}");
+                return response.IsSuccessStatusCode;
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApplicationException("Error deleting visit", ex);
+            }
+        }
+
+        public async Task<List<VisitModel>> GetVisitsByDateRangeAsync(DateTime dateFrom, DateTime dateTo, string url)
+        {
+            try
+            {
+                HttpClient _httpClient = new HttpClient();
+                var token = await _webAppInfraHttpClient.GetJwtBearerToken(new HttpClients.Models.LoginModel() { Username = "testuser", Password = "testpassword" }, url);
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                var response = await _httpClient.GetFromJsonAsync<List<VisitModel>>($"{url}{ApiEndpoints.GetVisitsByDateRange}?dateFrom={dateFrom:yyyy-MM-dd}&dateTo={dateTo:yyyy-MM-dd}");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("Error fetching visits by date range", ex);
             }
         }
     }

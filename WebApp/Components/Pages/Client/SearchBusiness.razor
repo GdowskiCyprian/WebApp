@@ -2,9 +2,11 @@
 @using WebApp.Authorization
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
+@using WebApp.Components.Pages.Client.Components
 @using WebApp.Infrastructure.Abstractions
 @using WebApp.Infrastructure.Api
 @inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
 @inject IWebAppInfraApi infraApi
 
 @attribute [Authorize(Roles = Roles.Client)]
@@ -12,43 +14,99 @@
 <PageTitle>Search Business</PageTitle>
 
 <AuthorizeView>
-    Hello @User!
-    You are @Role
+    <Authorized>
+        <div>
+                <div>
+                    <InputText type="text" @bind-Value="filterPostalCode" class="form-control" aria-required="true" placeholder="PostalCode" />
+                    <label for="text" class="form-label">Filter by PostalCode</label>
+                </div>
+                <div>
+                <button type="submit" @onclick="FilterBusinesses" class="w-100 btn btn-lg btn-primary">Filter</button>
+                </div>
+        </div>
 
-    @foreach (var business in businessModels)
-    {
-        <tr>
-            <td>@business.Id</td>
-            <td>@business.Name</td>
-            <td>@business.PostalCode</td>
-            <td>@business.City</td>
-        </tr>
-    }
+        <div class="business-list-container">
+            @foreach (var business in FilteredBusinesses)
+            {
+                <BusinessTile Id="@business.Id"
+                              Name="@business.Name"
+                              Description="@business.Description"
+                              BusinessType="@business.BusinessType"
+                              City="@business.City"
+                              PostalCode="@business.PostalCode"
+                              Street="@business.Street"
+                              BuildingNumber="@business.BuildingNumber" />
+            }
+        </div>
+
+        <div class="visit-list-container">
+            @foreach (var visit in FilteredVisits)
+            {
+                <VisitTile 
+                           BusinessId="@visit.BusinessId"
+                           VisitTime="@visit.VisitTime"
+                           Email="@visit.Email"
+                           PhoneNumber="@visit.PhoneNumber"
+                           IsConfirmed="@visit.IsConfirmed" />
+            }
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <p>You are not authorized to view this page.</p>
+    </NotAuthorized>
 </AuthorizeView>
 
 @code {
-    private string Role;
-    private string User;
+
+    private ApplicationUser User;
+
+    private string filterPostalCode = string.Empty;
 
     private List<BusinessModel> businessModels = new List<BusinessModel>();
 
+    private List<BusinessModel> FilteredBusinesses = new List<BusinessModel>();
+
+    private List<VisitModel> FilteredVisits = new List<VisitModel>();
+
     protected override async Task OnInitializedAsync()
     {
-        User = SignInManager.Context.User.Identity?.Name;
-        Role = CheckRole(SignInManager);
+        User = await UserManager.GetUserAsync(SignInManager.Context.User);
 
         businessModels = await infraApi.GetBusinessModelsAsync("https://localhost:44317");
+        FilteredVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), "https://localhost:44317");
+        FilteredBusinesses = businessModels;
     }
 
-    public string CheckRole(SignInManager<ApplicationUser> signInManager)
+    private void FilterBusinesses()
     {
-        if (signInManager.Context.User.IsInRole(Roles.Client))
-        {
-            return Roles.Client;
-        }
-        else
-        {
-            return Roles.Business;
-        }
+        FilteredBusinesses = string.IsNullOrWhiteSpace(filterPostalCode)
+            ? businessModels
+            : businessModels.Where(b => b.PostalCode.Contains(filterPostalCode)).ToList();
     }
 }
+
+<style>
+    .visit-list-container {
+        max-height: 400px;
+        overflow-y: scroll;
+    }
+
+    .visit-tile {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 5px;
+        background-color: #f9f9f9;
+    }
+
+    .business-list-container {
+        max-height: 400px;
+        overflow-y: scroll;
+    }
+
+    .business-tile {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 5px;
+        background-color: #f9f9f9;
+    }
+</style>

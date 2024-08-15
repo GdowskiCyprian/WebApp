@@ -1,0 +1,21 @@
+﻿<!-- VisitTile.razor -->
+<div class="visit-tile">
+    <h3>@BusinessId</h3>
+    <p>@VisitTime</p>
+    <p>@Email</p>
+    <p>@PhoneNumber</p>
+    <p>@(IsConfirmed ? "Yes" : "No")</p>
+</div>
+
+@code {
+    [Parameter]
+    public int BusinessId { get; set; }
+    [Parameter]
+    public DateTime VisitTime { get; set; }
+    [Parameter]
+    public string Email { get; set; }
+    [Parameter]
+    public string PhoneNumber { get; set; }
+    [Parameter]
+    public bool IsConfirmed { get; set; }
+}

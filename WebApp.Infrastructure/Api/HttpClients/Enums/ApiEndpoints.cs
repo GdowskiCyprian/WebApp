@@ -7,5 +7,12 @@
         public static string InsertBusinessModels = "/InsertBusinessModels";
         public static string UpdateBusinessModels = "/UpdateBusinessModels";
         public static string DeleteBusinessModels = "/DeleteBusinessModels";
+
+        public static string GetVisits = "/GetVisits";
+        public static string InsertVisit = "/InsertVisit";
+        public static string UpdateVisit = "/UpdateVisit";
+        public static string DeleteVisit = "/DeleteVisit";
+
+        public const string GetVisitsByDateRange = "/GetVisitsByDateRange";
     }
 }
