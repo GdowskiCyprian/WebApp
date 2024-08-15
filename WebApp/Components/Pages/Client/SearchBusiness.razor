@@ -16,13 +16,13 @@
 <AuthorizeView>
     <Authorized>
         <div>
-                <div>
-                    <InputText type="text" @bind-Value="filterPostalCode" class="form-control" aria-required="true" placeholder="PostalCode" />
-                    <label for="text" class="form-label">Filter by PostalCode</label>
-                </div>
-                <div>
+            <div>
+                <InputText type="text" @bind-Value="filterPostalCode" class="form-control" aria-required="true" placeholder="PostalCode" />
+                <label for="text" class="form-label">Filter by PostalCode</label>
+            </div>
+            <div>
                 <button type="submit" @onclick="FilterBusinesses" class="w-100 btn btn-lg btn-primary">Filter</button>
-                </div>
+            </div>
         </div>
 
         <div class="business-list-container">
@@ -35,21 +35,47 @@
                               City="@business.City"
                               PostalCode="@business.PostalCode"
                               Street="@business.Street"
-                              BuildingNumber="@business.BuildingNumber" />
+                              BuildingNumber="@business.BuildingNumber"
+                              OnMakeVisit="ShowVisitModal" />
             }
         </div>
-
+        <h3>Your Visits</h3>
         <div class="visit-list-container">
             @foreach (var visit in FilteredVisits)
             {
-                <VisitTile 
-                           BusinessId="@visit.BusinessId"
+                <VisitTile BusinessId="@visit.BusinessId"
                            VisitTime="@visit.VisitTime"
                            Email="@visit.Email"
                            PhoneNumber="@visit.PhoneNumber"
                            IsConfirmed="@visit.IsConfirmed" />
             }
         </div>
+
+        <!-- Visit Modal -->
+        @if (showModal)
+        {
+            <div class="modal" style="display:block;">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Make a Visit</h5>
+                            <button type="button" class="btn-close" @onclick="CloseVisitModal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div>
+                                <label for="visitDate" class="form-label">Select Date</label>
+                                <InputDate @bind-Value="selectedVisitDate" id="visitDate" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseVisitModal">Close</button>
+                            <button type="button" class="btn btn-primary" @onclick="SubmitVisit">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop fade show"></div>
+        }
     </Authorized>
     <NotAuthorized>
         <p>You are not authorized to view this page.</p>
@@ -57,21 +83,18 @@
 </AuthorizeView>
 
 @code {
-
     private ApplicationUser User;
-
     private string filterPostalCode = string.Empty;
-
     private List<BusinessModel> businessModels = new List<BusinessModel>();
-
     private List<BusinessModel> FilteredBusinesses = new List<BusinessModel>();
-
     private List<VisitModel> FilteredVisits = new List<VisitModel>();
+    private int selectedBusinessId;
+    private DateTime selectedVisitDate = DateTime.Now;
+    private bool showModal = false;
 
     protected override async Task OnInitializedAsync()
     {
         User = await UserManager.GetUserAsync(SignInManager.Context.User);
-
         businessModels = await infraApi.GetBusinessModelsAsync("https://localhost:44317");
         FilteredVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), "https://localhost:44317");
         FilteredBusinesses = businessModels;
@@ -82,6 +105,34 @@
         FilteredBusinesses = string.IsNullOrWhiteSpace(filterPostalCode)
             ? businessModels
             : businessModels.Where(b => b.PostalCode.Contains(filterPostalCode)).ToList();
+    }
+
+    private void ShowVisitModal(int businessId)
+    {
+        selectedBusinessId = businessId;
+        showModal = true;
+    }
+
+    private void CloseVisitModal()
+    {
+        showModal = false;
+    }
+
+    private async Task SubmitVisit()
+    {
+        var visitModel = new VisitViewModel
+            {
+                UserId = new Guid(User.Id),
+                BusinessId = selectedBusinessId,
+                VisitTime = selectedVisitDate,
+                Email = User.Email,
+                PhoneNumber = User.PhoneNumber,
+                IsConfirmed = false
+            };
+
+        bool success = await infraApi.InsertVisitAsync(visitModel, "https://localhost:44317");
+
+        showModal = false;
     }
 }
 
@@ -108,5 +159,20 @@
         padding: 10px;
         margin: 5px;
         background-color: #f9f9f9;
+    }
+
+    .modal {
+        display: block;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
     }
 </style>
