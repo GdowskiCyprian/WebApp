@@ -37,8 +37,9 @@ namespace WebApp.Infrastructure.Api
             try
             {
                 HttpClient _httpClient = new HttpClient();
-                _httpClient.DefaultRequestHeaders.Add("Bearer", await _webAppInfraHttpClient.GetJwtBearerToken(new HttpClients.Models.LoginModel() { Username = "testuser", Password = "testpassword" }, url));
-                var response = await _httpClient.PostAsJsonAsync($"{url}{ApiEndpoints.InsertBusinessModels}", model);
+                var token = await _webAppInfraHttpClient.GetJwtBearerToken(new HttpClients.Models.LoginModel() { Username = "testuser", Password = "testpassword" }, url);
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                var response = await _httpClient.PostAsJsonAsync($"{url}{ApiEndpoints.InsertBusinessModel}", model);
                 return response.IsSuccessStatusCode;
             }
             catch (HttpRequestException ex)
@@ -52,8 +53,9 @@ namespace WebApp.Infrastructure.Api
             try
             {
                 HttpClient _httpClient = new HttpClient();
-                _httpClient.DefaultRequestHeaders.Add("Bearer", await _webAppInfraHttpClient.GetJwtBearerToken(new HttpClients.Models.LoginModel() { Username = "testuser", Password = "testpassword" }, url));
-                var response = await _httpClient.PutAsJsonAsync($"{url}{ApiEndpoints.UpdateBusinessModels}", model);
+                var token = await _webAppInfraHttpClient.GetJwtBearerToken(new HttpClients.Models.LoginModel() { Username = "testuser", Password = "testpassword" }, url);
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                var response = await _httpClient.PutAsJsonAsync($"{url}{ApiEndpoints.UpdateBusinessModel}", model);
                 return response.IsSuccessStatusCode;
             }
             catch (HttpRequestException ex)
@@ -67,8 +69,9 @@ namespace WebApp.Infrastructure.Api
             try
             {
                 HttpClient _httpClient = new HttpClient();
-                _httpClient.DefaultRequestHeaders.Add("Bearer", await _webAppInfraHttpClient.GetJwtBearerToken(new HttpClients.Models.LoginModel() { Username = "testuser", Password = "testpassword" }, url));
-                var response = await _httpClient.DeleteAsync($"{url}{ApiEndpoints.GetBusinessModels}/{id}");
+                var token = await _webAppInfraHttpClient.GetJwtBearerToken(new HttpClients.Models.LoginModel() { Username = "testuser", Password = "testpassword" }, url);
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                var response = await _httpClient.DeleteAsync($"{url}{ApiEndpoints.DeleteBusinessModel}/{id}");
                 return response.IsSuccessStatusCode;
             }
             catch (HttpRequestException ex)
@@ -114,7 +117,8 @@ namespace WebApp.Infrastructure.Api
             try
             {
                 HttpClient _httpClient = new HttpClient();
-                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", await _webAppInfraHttpClient.GetJwtBearerToken(new HttpClients.Models.LoginModel() { Username = "testuser", Password = "testpassword" }, url));
+                var token = await _webAppInfraHttpClient.GetJwtBearerToken(new HttpClients.Models.LoginModel() { Username = "testuser", Password = "testpassword" }, url);
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
                 var response = await _httpClient.PutAsJsonAsync($"{url}{ApiEndpoints.UpdateVisit}", model);
                 return response.IsSuccessStatusCode;
             }

@@ -1,0 +1,24 @@
+﻿<div class="business-tile">
+    <h3>@Name</h3>
+    <p>@Description</p>
+    <p>@BusinessType</p>
+    <p>@City</p>
+    <p>@PostalCode</p>
+    <p>@Street</p>
+    <p>@BuildingNumber</p>
+    <button @onclick="() => OnUpdateBusiness.InvokeAsync(Id)" class="btn btn-warning">Update</button>
+    <button @onclick="() => OnDeleteBusiness.InvokeAsync(Id)" class="btn btn-danger">Delete</button>
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public string Name { get; set; }
+    [Parameter] public string Description { get; set; }
+    [Parameter] public string BusinessType { get; set; }
+    [Parameter] public string City { get; set; }
+    [Parameter] public string PostalCode { get; set; }
+    [Parameter] public string Street { get; set; }
+    [Parameter] public string BuildingNumber { get; set; }
+    [Parameter] public EventCallback<int> OnUpdateBusiness { get; set; }
+    [Parameter] public EventCallback<int> OnDeleteBusiness { get; set; }
+}

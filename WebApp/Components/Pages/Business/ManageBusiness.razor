@@ -1,7 +1,229 @@
-﻿@page "/business/searchbusiness"
+﻿@page "/Business/ManageBusiness"
+@using WebApp.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using WebApp.Components.Pages.Business.Components
+@using WebApp.Infrastructure.Abstractions
+@using WebApp.Infrastructure.Api
+@using WebApp.Infrastructure.Api.HttpClients.Enums
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IWebAppInfraApi infraApi
 
-<h3>ManageBusiness</h3>
+@attribute [Authorize(Roles = Roles.Business)]
+
+<PageTitle>Manage Business</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <div class="business-section">
+            <h2>Your Businesses</h2>
+            <div class="business-list-container">
+                @foreach (var business in UserBusinesses)
+                {
+                    <BusinessTile Id="@business.Id"
+                                  Name="@business.Name"
+                                  Description="@business.Description"
+                                  BusinessType="@business.BusinessType"
+                                  City="@business.City"
+                                  PostalCode="@business.PostalCode"
+                                  Street="@business.Street"
+                                  BuildingNumber="@business.BuildingNumber"
+                                  OnUpdateBusiness="ShowUpdateModal"
+                                  OnDeleteBusiness="DeleteBusiness" />
+                }
+            </div>
+
+            <button @onclick="ShowAddModal" class="btn btn-primary">Add New Business</button>
+        </div>
+
+        <!-- Incoming Visits Section -->
+        <div class="visit-section">
+            <h2>Incoming Visits</h2>
+            <div class="visit-list-container">
+                @foreach (var visit in IncomingVisits)
+                {
+                    <VisitTile1 Id="@visit.Id"
+                               BusinessId="@visit.BusinessId"
+                               VisitTime="@visit.VisitTime"
+                               Email="@visit.Email"
+                               PhoneNumber="@visit.PhoneNumber"
+                               IsConfirmed="@visit.IsConfirmed"
+                               OnConfirmVisit="ConfirmVisit" />
+                }
+            </div>
+        </div>
+
+        <!-- Add/Update Business Modal -->
+        @if (showBusinessModal)
+        {
+            <div class="modal" style="display:block;">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">@modalTitle</h5>
+                            <button type="button" class="btn-close" @onclick="CloseBusinessModal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <InputText @bind-Value="currentBusiness.Name" class="form-control" placeholder="Name" />
+                            <InputText @bind-Value="currentBusiness.Description" class="form-control" placeholder="Description" />
+                            <InputText @bind-Value="currentBusiness.BusinessType" class="form-control" placeholder="Business Type" />
+                            <InputText @bind-Value="currentBusiness.City" class="form-control" placeholder="City" />
+                            <InputText @bind-Value="currentBusiness.PostalCode" class="form-control" placeholder="Postal Code" />
+                            <InputText @bind-Value="currentBusiness.Street" class="form-control" placeholder="Street" />
+                            <InputText @bind-Value="currentBusiness.BuildingNumber" class="form-control" placeholder="Building Number" />
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseBusinessModal">Close</button>
+                            <button type="button" class="btn btn-primary" @onclick="SaveBusiness">@modalActionText</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop fade show"></div>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <p>You are not authorized to view this page.</p>
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
+    private ApplicationUser User;
+    private List<BusinessModel> UserBusinesses = new List<BusinessModel>();
+    private List<VisitModel> IncomingVisits = new List<VisitModel>();
 
+    private bool showBusinessModal = false;
+    private string modalTitle = "";
+    private string modalActionText = "";
+    private BusinessModel currentBusiness = new BusinessModel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        User = await UserManager.GetUserAsync(SignInManager.Context.User);
+        UserBusinesses = await infraApi.GetBusinessModelsAsync("https://localhost:44317");
+        IncomingVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now, DateTime.Now.AddDays(30), "https://localhost:44317");
+    }
+
+    private void ShowAddModal()
+    {
+        currentBusiness = new BusinessModel();
+        modalTitle = "Add New Business";
+        modalActionText = "Add Business";
+        showBusinessModal = true;
+    }
+
+    private void ShowUpdateModal(int businessId)
+    {
+        var business = UserBusinesses.FirstOrDefault(b => b.Id == businessId);
+        if (business != null)
+        {
+            currentBusiness = new BusinessModel
+            {
+                Id = business.Id,
+                Name = business.Name,
+                Description = business.Description,
+                BusinessType = business.BusinessType,
+                City = business.City,
+                PostalCode = business.PostalCode,
+                Street = business.Street,
+                BuildingNumber = business.BuildingNumber,
+                OwnerId = Guid.Parse(User.Id)
+            };
+            modalTitle = "Update Business";
+            modalActionText = "Save Changes";
+            showBusinessModal = true;
+        }
+    }
+
+    private void CloseBusinessModal()
+    {
+        showBusinessModal = false;
+    }
+
+    private async Task SaveBusiness()
+    {
+        bool success;
+        if (currentBusiness.Id > 0)
+        {
+            success = await infraApi.UpdateBusinessModelAsync(currentBusiness, $"https://localhost:44317");
+        }
+        else
+        {
+            success = await infraApi.InsertBusinessModelAsync(new BusinessViewModel()
+                {
+                    Name = currentBusiness.Name,
+                    Description = currentBusiness.Description,
+                    BusinessType = currentBusiness.BusinessType,
+                    City = currentBusiness.City,
+                    PostalCode = currentBusiness.PostalCode,
+                    Street = currentBusiness.Street,
+                    BuildingNumber = currentBusiness.BuildingNumber,
+                    OwnerId = Guid.Parse(User.Id)
+                }, $"https://localhost:44317");
+        }
+
+        if (success)
+        {
+            UserBusinesses = await infraApi.GetBusinessModelsAsync($"https://localhost:44317");
+            showBusinessModal = false;
+        }
+        else
+        {
+            // Handle error
+        }
+    }
+
+    private async Task DeleteBusiness(int businessId)
+    {
+        bool success = await infraApi.DeleteBusinessModelAsync(businessId, $"https://localhost:44317");
+
+        if (success)
+        {
+            UserBusinesses = await infraApi.GetBusinessModelsAsync($"https://localhost:44317");
+        }
+        else
+        {
+            // Handle error
+        }
+    }
+
+    private async Task ConfirmVisit(int visitId)
+    {
+        var visit = IncomingVisits.FirstOrDefault(v => v.Id == visitId);
+        if (visit != null)
+        {
+            visit.IsConfirmed = true;
+            await infraApi.UpdateVisitAsync(visit, "https://localhost:44317");
+            IncomingVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now, DateTime.Now.AddDays(30), "https://localhost:44317");
+        }
+    }
 }
+
+<style>
+    .business-section, .visit-section {
+        margin-bottom: 20px;
+    }
+
+    .business-list-container, .visit-list-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .modal {
+        display: block;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+    }
+</style>

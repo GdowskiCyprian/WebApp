@@ -4,9 +4,9 @@
     {
         public static string JwtAuthorization = "/api/Auth/login";
         public static string GetBusinessModels = "/GetBusinessModels";
-        public static string InsertBusinessModels = "/InsertBusinessModels";
-        public static string UpdateBusinessModels = "/UpdateBusinessModels";
-        public static string DeleteBusinessModels = "/DeleteBusinessModels";
+        public static string InsertBusinessModel = "/InsertBusinessModel";
+        public static string UpdateBusinessModel = "/UpdateBusinessModel";
+        public static string DeleteBusinessModel = "/DeleteBusinessModel";
 
         public static string GetVisits = "/GetVisits";
         public static string InsertVisit = "/InsertVisit";

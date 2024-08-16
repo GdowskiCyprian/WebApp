@@ -24,10 +24,15 @@
 
   <ItemGroup>
     <_ContentIncludedByDefault Remove="Components\Account\Components\VisitTile.razor" />
+    <_ContentIncludedByDefault Remove="Components\Pages\Business\Components\VisitTile.razor" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Components\Account\Components\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Components\Pages\Business\Components\VisitTile.razor" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,21 @@
+﻿<div class="visit-tile">
+    <div><strong>Business ID:</strong> @BusinessId</div>
+    <div><strong>Visit Time:</strong> @VisitTime.ToString("g")</div>
+    <div><strong>Email:</strong> @Email</div>
+    <div><strong>Phone Number:</strong> @PhoneNumber</div>
+    <div><strong>Confirmed:</strong> @(IsConfirmed ? "Yes" : "No")</div>
+    @if (!IsConfirmed)
+    {
+        <button @onclick="() => OnConfirmVisit.InvokeAsync(Id)" class="btn btn-success">Confirm Visit</button>
+    }
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public int BusinessId { get; set; }
+    [Parameter] public DateTime VisitTime { get; set; }
+    [Parameter] public string Email { get; set; }
+    [Parameter] public string PhoneNumber { get; set; }
+    [Parameter] public bool IsConfirmed { get; set; }
+    [Parameter] public EventCallback<int> OnConfirmVisit { get; set; }
+}
