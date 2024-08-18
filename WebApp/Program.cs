@@ -14,7 +14,7 @@ namespace WebApp
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
+            var backendUrl = args[0] ?? "";
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
@@ -44,7 +44,7 @@ namespace WebApp
 
             //builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
-            builder.Services.AddWebAppInfrastructure();
+            builder.Services.AddWebAppInfrastructure(backendUrl);
 
             var app = builder.Build();
 

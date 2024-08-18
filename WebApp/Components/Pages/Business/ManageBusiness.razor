@@ -101,8 +101,8 @@
     protected override async Task OnInitializedAsync()
     {
         User = await UserManager.GetUserAsync(SignInManager.Context.User);
-        UserBusinesses = await infraApi.GetBusinessModelsAsync("https://localhost:44317");
-        IncomingVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now, DateTime.Now.AddDays(30), "https://localhost:44317");
+        UserBusinesses = await infraApi.GetBusinessModelsAsync();
+        IncomingVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now, DateTime.Now.AddDays(30));
     }
 
     private void ShowAddModal()
@@ -146,7 +146,7 @@
         bool success;
         if (currentBusiness.Id > 0)
         {
-            success = await infraApi.UpdateBusinessModelAsync(currentBusiness, $"https://localhost:44317");
+            success = await infraApi.UpdateBusinessModelAsync(currentBusiness);
         }
         else
         {
@@ -160,12 +160,12 @@
                     Street = currentBusiness.Street,
                     BuildingNumber = currentBusiness.BuildingNumber,
                     OwnerId = Guid.Parse(User.Id)
-                }, $"https://localhost:44317");
+                });
         }
 
         if (success)
         {
-            UserBusinesses = await infraApi.GetBusinessModelsAsync($"https://localhost:44317");
+            UserBusinesses = await infraApi.GetBusinessModelsAsync();
             showBusinessModal = false;
         }
         else
@@ -176,11 +176,11 @@
 
     private async Task DeleteBusiness(int businessId)
     {
-        bool success = await infraApi.DeleteBusinessModelAsync(businessId, $"https://localhost:44317");
+        bool success = await infraApi.DeleteBusinessModelAsync(businessId);
 
         if (success)
         {
-            UserBusinesses = await infraApi.GetBusinessModelsAsync($"https://localhost:44317");
+            UserBusinesses = await infraApi.GetBusinessModelsAsync();
         }
         else
         {
@@ -194,8 +194,8 @@
         if (visit != null)
         {
             visit.IsConfirmed = true;
-            await infraApi.UpdateVisitAsync(visit, "https://localhost:44317");
-            IncomingVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now, DateTime.Now.AddDays(30), "https://localhost:44317");
+            await infraApi.UpdateVisitAsync(visit);
+            IncomingVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now, DateTime.Now.AddDays(30));
         }
     }
 }

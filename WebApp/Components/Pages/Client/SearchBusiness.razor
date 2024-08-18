@@ -97,8 +97,8 @@
     protected override async Task OnInitializedAsync()
     {
         User = await UserManager.GetUserAsync(SignInManager.Context.User);
-        businessModels = await infraApi.GetBusinessModelsAsync("https://localhost:44317");
-        FilteredVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1), "https://localhost:44317");
+        businessModels = await infraApi.GetBusinessModelsAsync();
+        FilteredVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1));
         FilteredBusinesses = businessModels;
     }
 
@@ -132,14 +132,14 @@
                 IsConfirmed = false
             };
 
-        bool success = await infraApi.InsertVisitAsync(visitModel, "https://localhost:44317");
+        bool success = await infraApi.InsertVisitAsync(visitModel);
 
         showModal = false;
     }
 
     private async Task DeleteVisit(int visitId)
     {
-        bool success = await infraApi.DeleteVisitAsync(visitId, "https://localhost:44317");
+        bool success = await infraApi.DeleteVisitAsync(visitId);
 
         if (success)
         {
