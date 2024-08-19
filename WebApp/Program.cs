@@ -14,8 +14,6 @@ namespace WebApp
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            var backendUrl = args[0] ?? "";
-            // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
@@ -42,9 +40,7 @@ namespace WebApp
                 .AddSignInManager()
                 .AddDefaultTokenProviders();
 
-            //builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
-
-            builder.Services.AddWebAppInfrastructure(backendUrl);
+            builder.Services.AddWebAppInfrastructure(builder.Configuration.GetConnectionString("ApiUrl"));
 
             var app = builder.Build();
 
@@ -66,7 +62,6 @@ namespace WebApp
                 }
             }
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseMigrationsEndPoint();
@@ -74,7 +69,6 @@ namespace WebApp
             else
             {
                 app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
@@ -86,7 +80,6 @@ namespace WebApp
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
 
-            // Add additional endpoints required by the Identity /Account Razor components.
             app.MapAdditionalIdentityEndpoints();
 
             app.Run();
