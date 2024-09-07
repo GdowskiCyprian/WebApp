@@ -1,8 +1,7 @@
-using WebApp.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using WebApp.Authorization;
 using WebApp.Components;
 using WebApp.Components.Account;
 using WebApp.Infrastructure.Extensions;
@@ -16,6 +15,9 @@ namespace WebApp
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
 
             builder.Services.AddCascadingAuthenticationState();
             builder.Services.AddScoped<IdentityUserAccessor>();

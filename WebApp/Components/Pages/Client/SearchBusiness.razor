@@ -17,11 +17,11 @@
     <Authorized>
         <div>
             <div>
-                <InputText type="text" @bind-Value="filterPostalCode" class="form-control" aria-required="true" placeholder="PostalCode" />
+                <InputText type="text" @bind-Value="filterPostalCode" @oninput="FilterBusinesses" class="form-control" placeholder="PostalCode" />
                 <label for="text" class="form-label">Filter by PostalCode</label>
             </div>
             <div>
-                <button type="submit" @onclick="FilterBusinesses" class="w-100 btn btn-lg btn-primary">Filter</button>
+                <button @onclick="LoadMoreBusinesses" class="w-100 btn btn-lg btn-secondary">Load More Businesses</button>
             </div>
         </div>
 
@@ -39,19 +39,29 @@
                               OnMakeVisit="ShowVisitModal" />
             }
         </div>
+
         <h3>Your Visits</h3>
-        <div class="visit-list-container">
-            @foreach (var visit in FilteredVisits)
-            {
-                <VisitTile Id="@visit.Id"
-                           BusinessId="@visit.BusinessId"
-                           VisitTime="@visit.VisitTime"
-                           Email="@visit.Email"
-                           PhoneNumber="@visit.PhoneNumber"
-                           IsConfirmed="@visit.IsConfirmed"
-                           OnDeleteVisit="DeleteVisit" />
-            }
+        <div>
+            <button @onclick="LoadVisits" class="w-100 btn btn-lg btn-secondary">Load Visits</button>
         </div>
+        
+        @if (showVisits)
+        {
+            <div class="visit-list-container">
+                @foreach (var visit in PagedVisits)
+                {
+                    <VisitTile Id="@visit.Id"
+                               BusinessId="@visit.BusinessId"
+                               VisitTime="@visit.VisitTime"
+                               Email="@visit.Email"
+                               PhoneNumber="@visit.PhoneNumber"
+                               IsConfirmed="@visit.IsConfirmed"
+                               OnDeleteVisit="DeleteVisit" />
+                }
+            </div>
+            <button @onclick="LoadMoreVisits" class="w-100 btn btn-lg btn-secondary">Load More Visits</button>
+        }
+        
 
         <!-- Visit Modal -->
         @if (showModal)
@@ -89,17 +99,46 @@
     private string filterPostalCode = string.Empty;
     private List<BusinessModel> businessModels = new List<BusinessModel>();
     private List<BusinessModel> FilteredBusinesses = new List<BusinessModel>();
-    private List<VisitModel> FilteredVisits = new List<VisitModel>();
-    private int selectedBusinessId;
-    private DateTime selectedVisitDate = DateTime.Now;
+    private List<VisitModel> PagedVisits = new List<VisitModel>();
     private bool showModal = false;
+    private bool showVisits = false;
+    private int businessOffset = 0;
+    private int visitOffset = 0;
+    private int debounceTimeout;
+    private DateTime selectedVisitDate = DateTime.Now;
+    private int selectedBusinessId;
 
     protected override async Task OnInitializedAsync()
     {
         User = await UserManager.GetUserAsync(SignInManager.Context.User);
-        businessModels = await infraApi.GetBusinessModelsAsync();
-        FilteredVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1));
-        FilteredBusinesses = businessModels;
+        await LoadMoreBusinesses();
+        await LoadVisits();
+    }
+
+    private async Task LoadMoreBusinesses()
+    {
+        var newBusinesses = await infraApi.GetBusinessModelsAsync(businessOffset);
+        if (newBusinesses.Any())
+        {
+            FilteredBusinesses.AddRange(newBusinesses);
+            businessOffset++;
+        }
+    }
+
+    private async Task LoadVisits()
+    {
+        showVisits = true;
+        await LoadMoreVisits();
+    }
+
+    private async Task LoadMoreVisits()
+    {
+        var newVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now, DateTime.Now.AddDays(30), visitOffset);
+        if (newVisits.Any())
+        {
+            PagedVisits.AddRange(newVisits);
+            visitOffset++;
+        }
     }
 
     private void FilterBusinesses()
@@ -123,54 +162,36 @@
     private async Task SubmitVisit()
     {
         var visitModel = new VisitViewModel
-            {
-                UserId = new Guid(User.Id),
-                BusinessId = selectedBusinessId,
-                VisitTime = selectedVisitDate,
-                Email = User.Email,
-                PhoneNumber = User.PhoneNumber,
-                IsConfirmed = false
-            };
+        {
+            UserId = new Guid(User.Id),
+            BusinessId = selectedBusinessId,
+            VisitTime = selectedVisitDate,
+            Email = User.Email,
+            PhoneNumber = User.PhoneNumber,
+            IsConfirmed = false
+        };
 
         bool success = await infraApi.InsertVisitAsync(visitModel);
-
         showModal = false;
     }
 
     private async Task DeleteVisit(int visitId)
     {
         bool success = await infraApi.DeleteVisitAsync(visitId);
-
         if (success)
         {
-            FilteredVisits = FilteredVisits.Where(v => v.Id != visitId).ToList();
-        }
-        else
-        {
-            // Handle error
+            PagedVisits = PagedVisits.Where(v => v.Id != visitId).ToList();
         }
     }
 }
 
 <style>
-    .visit-list-container {
+    .visit-list-container, .business-list-container {
         max-height: 400px;
         overflow-y: scroll;
     }
 
-    .visit-tile {
-        border: 1px solid #ccc;
-        padding: 10px;
-        margin: 5px;
-        background-color: #f9f9f9;
-    }
-
-    .business-list-container {
-        max-height: 400px;
-        overflow-y: scroll;
-    }
-
-    .business-tile {
+    .business-tile, .visit-tile {
         border: 1px solid #ccc;
         padding: 10px;
         margin: 5px;

@@ -19,7 +19,7 @@
         <div class="business-section">
             <h2>Your Businesses</h2>
             <div class="business-list-container">
-                @foreach (var business in UserBusinesses)
+                @foreach (var business in PagedBusinesses)
                 {
                     <BusinessTile Id="@business.Id"
                                   Name="@business.Name"
@@ -34,24 +34,30 @@
                 }
             </div>
 
+            <button @onclick="LoadMoreBusinesses" class="btn btn-secondary">Load More Businesses</button>
             <button @onclick="ShowAddModal" class="btn btn-primary">Add New Business</button>
         </div>
 
         <!-- Incoming Visits Section -->
         <div class="visit-section">
             <h2>Incoming Visits</h2>
-            <div class="visit-list-container">
-                @foreach (var visit in IncomingVisits)
-                {
-                    <VisitTile1 Id="@visit.Id"
-                               BusinessId="@visit.BusinessId"
-                               VisitTime="@visit.VisitTime"
-                               Email="@visit.Email"
-                               PhoneNumber="@visit.PhoneNumber"
-                               IsConfirmed="@visit.IsConfirmed"
-                               OnConfirmVisit="ConfirmVisit" />
-                }
-            </div>
+            <button @onclick="LoadVisits" class="btn btn-secondary">Load Visits</button>
+            @if (showVisits)
+            {
+                <div class="visit-list-container">
+                    @foreach (var visit in PagedVisits)
+                    {
+                        <VisitTile1 Id="@visit.Id"
+                                    BusinessId="@visit.BusinessId"
+                                    VisitTime="@visit.VisitTime"
+                                    Email="@visit.Email"
+                                    PhoneNumber="@visit.PhoneNumber"
+                                    IsConfirmed="@visit.IsConfirmed"
+                                    OnConfirmVisit="ConfirmVisit" />
+                    }
+                </div>
+                <button @onclick="LoadMoreVisits" class="btn btn-secondary">Load More Visits</button>
+            }
         </div>
 
         <!-- Add/Update Business Modal -->
@@ -91,18 +97,48 @@
 @code {
     private ApplicationUser User;
     private List<BusinessModel> UserBusinesses = new List<BusinessModel>();
+    private List<BusinessModel> PagedBusinesses = new List<BusinessModel>();
     private List<VisitModel> IncomingVisits = new List<VisitModel>();
+    private List<VisitModel> PagedVisits = new List<VisitModel>();
 
     private bool showBusinessModal = false;
+    private bool showVisits = false;
     private string modalTitle = "";
     private string modalActionText = "";
     private BusinessModel currentBusiness = new BusinessModel();
+    private int businessOffset = 0;
+    private int visitOffset = 0;
 
     protected override async Task OnInitializedAsync()
     {
         User = await UserManager.GetUserAsync(SignInManager.Context.User);
-        UserBusinesses = await infraApi.GetBusinessModelsAsync();
-        IncomingVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now, DateTime.Now.AddDays(30));
+        await LoadMoreBusinesses();
+    }
+
+    private async Task LoadMoreBusinesses()
+    {
+        var newBusinesses = await infraApi.GetBusinessModelsAsync(businessOffset);
+        if (newBusinesses.Any())
+        {
+            PagedBusinesses.AddRange(newBusinesses);
+            businessOffset++;
+        }
+    }
+
+    private async Task LoadVisits()
+    {
+        showVisits = true;
+        await LoadMoreVisits();
+    }
+
+    private async Task LoadMoreVisits()
+    {
+        var newVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now, DateTime.Now.AddDays(30), visitOffset);
+        if (newVisits.Any())
+        {
+            PagedVisits.AddRange(newVisits);
+            visitOffset++;
+        }
     }
 
     private void ShowAddModal()
@@ -119,17 +155,17 @@
         if (business != null)
         {
             currentBusiness = new BusinessModel
-            {
-                Id = business.Id,
-                Name = business.Name,
-                Description = business.Description,
-                BusinessType = business.BusinessType,
-                City = business.City,
-                PostalCode = business.PostalCode,
-                Street = business.Street,
-                BuildingNumber = business.BuildingNumber,
-                OwnerId = Guid.Parse(User.Id)
-            };
+                {
+                    Id = business.Id,
+                    Name = business.Name,
+                    Description = business.Description,
+                    BusinessType = business.BusinessType,
+                    City = business.City,
+                    PostalCode = business.PostalCode,
+                    Street = business.Street,
+                    BuildingNumber = business.BuildingNumber,
+                    OwnerId = Guid.Parse(User.Id)
+                };
             modalTitle = "Update Business";
             modalActionText = "Save Changes";
             showBusinessModal = true;
@@ -150,7 +186,7 @@
         }
         else
         {
-            success = await infraApi.InsertBusinessModelAsync(new BusinessViewModel()
+            success = await infraApi.InsertBusinessModelAsync(new BusinessViewModel
                 {
                     Name = currentBusiness.Name,
                     Description = currentBusiness.Description,
@@ -168,34 +204,24 @@
             UserBusinesses = await infraApi.GetBusinessModelsAsync();
             showBusinessModal = false;
         }
-        else
-        {
-            // Handle error
-        }
     }
 
     private async Task DeleteBusiness(int businessId)
     {
         bool success = await infraApi.DeleteBusinessModelAsync(businessId);
-
         if (success)
         {
-            UserBusinesses = await infraApi.GetBusinessModelsAsync();
-        }
-        else
-        {
-            // Handle error
+            PagedBusinesses = PagedBusinesses.Where(b => b.Id != businessId).ToList();
         }
     }
 
     private async Task ConfirmVisit(int visitId)
     {
-        var visit = IncomingVisits.FirstOrDefault(v => v.Id == visitId);
+        var visit = PagedVisits.FirstOrDefault(v => v.Id == visitId);
         if (visit != null)
         {
             visit.IsConfirmed = true;
             await infraApi.UpdateVisitAsync(visit);
-            IncomingVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now, DateTime.Now.AddDays(30));
         }
     }
 }

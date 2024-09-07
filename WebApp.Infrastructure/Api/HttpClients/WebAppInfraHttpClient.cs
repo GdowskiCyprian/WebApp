@@ -7,11 +7,6 @@ namespace WebApp.Infrastructure.Api.HttpClients
 {
     public class WebAppInfraHttpClient : IWebAppInfraHttpClient
     {
-
-        public WebAppInfraHttpClient()
-        {
-        }
-
         public async Task<string> GetJwtBearerToken(LoginModel loginModel, string url)
         {
             HttpClient _httpClient = new HttpClient();

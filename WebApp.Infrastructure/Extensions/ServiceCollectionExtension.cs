@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using WebApp.Infrastructure.Api;
 using WebApp.Infrastructure.Api.HttpClients;
 
@@ -11,7 +12,7 @@ namespace WebApp.Infrastructure.Extensions
             services.AddTransient<IWebAppInfraHttpClient, WebAppInfraHttpClient>();
             services.AddTransient<IWebAppInfraApi>(s =>
             {
-                return new WebAppInfraApi((IWebAppInfraHttpClient)s.GetRequiredService(typeof(IWebAppInfraHttpClient)),url);
+                return new WebAppInfraApi((IWebAppInfraHttpClient)s.GetRequiredService(typeof(IWebAppInfraHttpClient)), (HttpClient)s.GetRequiredService(typeof(HttpClient)), url, (ILogger<WebAppInfraApi>)s.GetRequiredService(typeof(ILogger<WebAppInfraApi>)));
             });
             return services;
         }
