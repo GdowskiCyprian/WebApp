@@ -133,7 +133,7 @@
 
     private async Task LoadMoreVisits()
     {
-        var newVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now, DateTime.Now.AddDays(30), visitOffset);
+        var newVisits = await infraApi.GetVisitsByDateRangeAsync(DateTime.Now.AddDays(-1), DateTime.Now.AddDays(30), visitOffset);
         if (newVisits.Any())
         {
             PagedVisits.AddRange(newVisits);
